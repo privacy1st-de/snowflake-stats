@@ -8,17 +8,11 @@ import exec
 
 
 def main():
-    if len(sys.argv) < 2:
-        print(f'usage: {sys.argv[0]} <docker-container-name> [<ssh-hostname>]', file=sys.stderr)
-        exit(1)
+    if len(sys.argv) > 1:
+        log = get_docker_log()
+    else:
+        log = sys.stdin.read()
 
-    container_name = sys.argv[1]
-
-    ssh_hostname = None
-    if len(sys.argv) > 2:
-        ssh_hostname = sys.argv[2]
-
-    log: str = docker_logs(container_name, ssh_hostname)
     filtered: List[str] = [line for line in log.splitlines()
                            if Throughput.PATTERN in line]
     # filtered = filtered_example()
@@ -44,6 +38,20 @@ def filtered_example() -> List[str]:
        '2022/04/04 16:00:06 Traffic throughput (up|down): 13 MB|15 MB -- (46326 OnMessages, 32325 Sends, over 36634 seconds)',
        '2022/04/04 15:57:04 Traffic throughput (up|down): 61 KB|8 KB -- (69 OnMessages, 91 Sends, over 157 seconds)',
     ]
+
+
+def get_docker_log() -> str:
+    if len(sys.argv) < 2:
+        print(f'usage: {sys.argv[0]} <docker-container-name> [<ssh-hostname>]', file=sys.stderr)
+        exit(1)
+
+    container_name = sys.argv[1]
+
+    ssh_hostname = None
+    if len(sys.argv) > 2:
+        ssh_hostname = sys.argv[2]
+
+    return docker_logs(container_name, ssh_hostname)
 
 
 def docker_logs(container_name: str, ssh_host: str = None) -> str:

@@ -2,13 +2,33 @@
 
 ## Usage
 
-usage: `./main.py <docker-container-name> [<ssh-hostname>]`
+Usage: `<write-log-to-stdout> | ./main.py`
 
-Example:
+- Example: Pipe docker log from remote computer into `main.py`
 
-```bash
-(venv-310) [user@linux snoflake-stats]$ ./main.py snowflake-proxy root_at_my_server
-```
+   ```bash
+   (venv-310) [user@linux snoflake-stats]$ ssh root_at_my_server 'docker logs snowflake-proxy' 2>&1 | ./main.py
+   ```
+
+- Example: Pipe logfile into `main.py`
+
+   ```bash
+   (venv-310) [user@linux snoflake-stats]$ cat snowflake.log | ./main.py
+   ```
+
+Usage: `./main.py <docker-container-name> [<ssh-hostname>]`
+
+- Example: Specify name of local docker container
+
+   ```bash
+   (venv-310) [user@linux snoflake-stats]$ ./main.py snowflake-proxy
+   ```
+
+- Example: Docker container name and ssh hostname
+
+   ```bash
+   (venv-310) [user@linux snoflake-stats]$ ./main.py snowflake-proxy root_at_my_server
+   ```
 
 ## Example output
 
