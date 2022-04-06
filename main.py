@@ -103,7 +103,7 @@ class Throughput:
         )
 
     def __str__(self) -> str:
-        return f'{Throughput._to_gb(self.bytes_up)} GB, {Throughput._to_gb(self.bytes_down)} GB -- ({self.on_messages} OnMessages, {self.sends} sends, {self.seconds} seconds)'
+        return f'{Throughput._to_gb(self.bytes_up)} GB up, {Throughput._to_gb(self.bytes_down)} GB down ({self.on_messages} OnMessages, {self.sends} sends, {self.seconds} seconds)'
 
     @classmethod
     def _split_to_bytes(cls, num_unit: str) -> int:
