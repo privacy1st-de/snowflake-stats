@@ -2,12 +2,23 @@
 from __future__ import annotations
 from typing import List
 from datetime import datetime
+import sys
 
 import exec
 
 
 def main():
-    log: str = docker_logs(container_name='snowflake-proxy', ssh_host='rootnas')
+    if len(sys.argv) < 2:
+        print(f'usage: {sys.argv[0]} <docker-container-name> [<ssh-hostname>]', file=sys.stderr)
+        exit(1)
+
+    container_name = sys.argv[1]
+
+    ssh_hostname = None
+    if len(sys.argv) > 2:
+        ssh_hostname = sys.argv[2]
+
+    log: str = docker_logs(container_name, ssh_hostname)
     filtered: List[str] = [line for line in log.splitlines()
                            if Throughput.PATTERN in line]
     # filtered = filtered_example()

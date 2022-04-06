@@ -2,8 +2,12 @@
 
 ## Usage
 
+usage: `./main.py <docker-container-name> [<ssh-hostname>]`
+
+Example:
+
 ```bash
-(venv-310) [user@linux snoflake-stats]$ ./main.py
+(venv-310) [user@linux snoflake-stats]$ ./main.py snowflake-proxy root_at_my_server
 ```
 
 ## Example output
