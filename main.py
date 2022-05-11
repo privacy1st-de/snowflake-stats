@@ -27,9 +27,13 @@ def main():
         else:
             grouped_by_day[tp.dt.date()] = [tp]
 
+    tps_total = Throughput.zero()
     for day, tp_list in grouped_by_day.items():
         tps_sum = sum(tp_list, Throughput.zero())
         print(f'{day}: {tps_sum}')
+        tps_total += tps_sum
+
+    print(f'Total:\n{tps_total}')
 
 
 def filtered_example() -> List[str]:
