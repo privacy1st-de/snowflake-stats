@@ -18,7 +18,8 @@ def main():
     # filtered = filtered_example()
 
     tps = [Throughput.from_str(line) for line in filtered]
-    print(f'From {tps[0].dt} until {tps[-1].dt}:')
+    if len(tps) > 0:
+        print(f'From {tps[0].dt} until {tps[-1].dt}:')
 
     grouped_by_day = {}
     for tp in tps:
