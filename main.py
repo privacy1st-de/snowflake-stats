@@ -1,23 +1,29 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-from typing import List
+
+import re
 from datetime import datetime
 import sys
 
 import exec
 
 
-def main():
+def test() -> None:
+    log = example_log()
+    parse_log(log)
+
+
+def main() -> None:
     if len(sys.argv) > 1:
         log = get_docker_log()
     else:
         log = sys.stdin.read()
+    parse_log(log)
 
-    filtered: List[str] = [line for line in log.splitlines()
-                           if Throughput.PATTERN in line]
-    # filtered = filtered_example()
 
-    tps = [Throughput.from_str(line) for line in filtered]
+def parse_log(log: str) -> None:
+    tps = [Throughput.from_str(line) for line in log.splitlines()]
+    tps = [tp for tp in tps if tp]
     if len(tps) > 0:
         print(f'From {tps[0].dt} until {tps[-1].dt}:')
 
@@ -37,12 +43,15 @@ def main():
     print(f'Total:\n{tps_total}')
 
 
-def filtered_example() -> List[str]:
-    return [
-       '2022/04/04 15:08:10 Traffic throughput (up|down): 4 MB|259 KB -- (691 OnMessages, 3886 Sends, over 269 seconds)',
-       '2022/04/04 16:00:06 Traffic throughput (up|down): 13 MB|15 MB -- (46326 OnMessages, 32325 Sends, over 36634 seconds)',
-       '2022/04/04 15:57:04 Traffic throughput (up|down): 61 KB|8 KB -- (69 OnMessages, 91 Sends, over 157 seconds)',
-    ]
+def example_log() -> str:
+    return '\n'.join(
+        [
+            '2022/09/27 02:02:26 In the last 1h0m0s, there were 1 connections. Traffic Relayed ↑ 708 KB, ↓ 328 KB.',
+            '2022/09/28 02:02:26 In the last 1h0m0s, there were 0 connections. Traffic Relayed ↑ 0 B, ↓ 0 B.',
+            '2022/09/29 05:02:26 In the last 1h0m0s, there were 5 connections. Traffic Relayed ↑ 6 MB, ↓ 787 KB.',
+            '2022/09/29 11:02:26 In the last 1h0m0s, there were 26 connections. Traffic Relayed ↑ 16 MB, ↓ 10 MB.',
+        ]
+    )
 
 
 def get_docker_log() -> str:
@@ -64,12 +73,10 @@ def docker_logs(container_name: str, ssh_host: str = None) -> str:
 
 
 class Throughput:
-    FORMAT_EXAMPLE = '2022/04/06 10:37:42'
-    FORMAT_STR = '%Y/%m/%d %H:%M:%S'
-    FORMAT_LENGTH = len(FORMAT_EXAMPLE)
+    # DATE_FORMAT_EXAMPLE = '2022/04/06 10:37:42'
+    DATE_FORMAT_STR = '%Y/%m/%d %H:%M:%S'
 
-    PATTERN = ' Traffic throughput (up|down): '
-
+    # Units sorted from small to large.
     _unit_dict = {
         'B': 1,
         'KB': 10 ** 3,
@@ -79,40 +86,37 @@ class Throughput:
     }
 
     @classmethod
-    def from_str(cls, line: str) -> Throughput:
-        dt_str = line[0:Throughput.FORMAT_LENGTH]
-        dt = datetime.strptime(dt_str, Throughput.FORMAT_STR)
+    def from_str(cls, line: str) -> Throughput | None:
+        pattern_str = r'(\d\d\d\d/\d\d/\d\d \d\d:\d\d:\d\d)' \
+                      r' In the last 1h0m0s, there were (\d+) connections\. ' \
+                      r'Traffic Relayed ↑ (\d+ [A-Z]+), ↓ (\d+ [A-Z]+)\.'
+        pattern = re.compile(pattern_str)
+        match = pattern.match(line)
 
-        _, tail = line.split(Throughput.PATTERN)
-        up, tail = tail.split('|')
-        down, tail = tail.split(' -- (')
-        on_messages, tail = tail.split(', ', maxsplit=1)
-        sends, tail = tail.split(', ')
-        seconds, tail = tail.split(')')
+        if not match:
+            print(f'No match for this line: {line}', file=sys.stderr)
+            return None
 
-        bytes_up = cls._split_to_bytes(up)
-        bytes_down = cls._split_to_bytes(down)
-        on_messages = int(on_messages.split(' ')[0])
-        sends = int(sends.split(' ')[0])
-        seconds = int(seconds.split(' ')[1])
+        dt = datetime.strptime(match.group(1), Throughput.DATE_FORMAT_STR)
+        connections = int(match.group(2))
+        bytes_up = cls._split_to_bytes(match.group(3))
+        bytes_down = cls._split_to_bytes(match.group(4))
 
-        return cls(dt, bytes_up, bytes_down, on_messages, sends, seconds)
+        return cls(dt, bytes_up, bytes_down, connections)
 
     @classmethod
-    def from_args(cls, dt, bytes_up, bytes_down, on_messages, sends, seconds) -> Throughput:
-        return cls(dt, bytes_up, bytes_down, on_messages, sends, seconds)
+    def from_args(cls, dt, bytes_up, bytes_down, connections) -> Throughput:
+        return cls(dt, bytes_up, bytes_down, connections)
 
     @classmethod
     def zero(cls) -> Throughput:
-        return cls(None, 0, 0, 0, 0, 0)
+        return cls(None, 0, 0, 0)
 
-    def __init__(self, dt, bytes_up, bytes_down, on_messages, sends, seconds):
+    def __init__(self, dt, bytes_up, bytes_down, connections):
         self.dt = dt
         self.bytes_up = bytes_up
         self.bytes_down = bytes_down
-        self.on_messages = on_messages
-        self.sends = sends
-        self.seconds = seconds
+        self.connections = connections
 
     def __add__(self, other):
         if not isinstance(other, Throughput):
@@ -121,13 +125,13 @@ class Throughput:
             self.dt,
             self.bytes_up + other.bytes_up,
             self.bytes_down + other.bytes_down,
-            self.on_messages + other.on_messages,
-            self.sends + other.sends,
-            self.seconds + other.seconds,
+            self.connections + other.connections,
         )
 
     def __str__(self) -> str:
-        return f'{Throughput._to_gb(self.bytes_up)} GB up, {Throughput._to_gb(self.bytes_down)} GB down ({self.on_messages} OnMessages, {self.sends} sends, {self.seconds} seconds)'
+        up, up_unit = Throughput._to_unit_auto(self.bytes_up)
+        down, down_unit = Throughput._to_unit_auto(self.bytes_down)
+        return f'{up} {up_unit} up\t{down} {down_unit} down\t{self.connections} Connections'
 
     @classmethod
     def _split_to_bytes(cls, num_unit: str) -> int:
@@ -140,9 +144,23 @@ class Throughput:
         return num * cls._unit_dict[unit]
 
     @classmethod
-    def _to_gb(cls, num_bytes: int) -> int:
-        return round(num_bytes / cls._unit_dict['GB'], 1)
+    def _to_unit(cls, num_bytes: int, unit: str = 'GB') -> int:
+        return int(round(num_bytes / cls._unit_dict[unit], 1))
+
+    @classmethod
+    def _to_unit_auto(cls, num_bytes: int) -> (int, str):
+        converted, unit = -1, 'ERROR'
+
+        for unit, factor in cls._unit_dict.items():
+            converted = cls._to_unit(num_bytes, unit)
+            if converted < 9999:
+                return converted, unit
+
+        if unit == 'ERROR':
+            raise ValueError('Invalid state')
+        return converted, unit
 
 
 if __name__ == '__main__':
+    # test()
     main()
