@@ -25,6 +25,7 @@ def parse_log(log: str) -> None:
     tps = [Throughput.from_str(line) for line in log.splitlines()]
     tps = [tp for tp in tps if tp]
     if len(tps) > 0:
+        print()
         print(f'From {tps[0].dt} until {tps[-1].dt}:')
 
     grouped_by_day = {}
@@ -40,6 +41,7 @@ def parse_log(log: str) -> None:
         print(f'{day}: {tps_sum}')
         tps_total += tps_sum
 
+    print()
     print(f'Total:\n{tps_total}')
 
 
