@@ -48,10 +48,13 @@ def parse_log(log: str) -> None:
 def example_log() -> str:
     return '\n'.join(
         [
+            '2022/09/13 15:08:36 Proxy starting',
+            '2022/09/13 15:08:43 NAT type: unrestricted',
             '2022/09/27 02:02:26 In the last 1h0m0s, there were 1 connections. Traffic Relayed ↑ 708 KB, ↓ 328 KB.',
             '2022/09/28 02:02:26 In the last 1h0m0s, there were 0 connections. Traffic Relayed ↑ 0 B, ↓ 0 B.',
             '2022/09/29 05:02:26 In the last 1h0m0s, there were 5 connections. Traffic Relayed ↑ 6 MB, ↓ 787 KB.',
             '2022/09/29 11:02:26 In the last 1h0m0s, there were 26 connections. Traffic Relayed ↑ 16 MB, ↓ 10 MB.',
+            'sctp ERROR: 2022/09/29 23:00:53 [0xc00006e000] stream 1 not found)',
         ]
     )
 
@@ -96,6 +99,11 @@ class Throughput:
         match = pattern.match(line)
 
         if not match:
+            if 'sctp ERROR' in line or \
+                    'Proxy starting' in line or \
+                    'NAT type: ' in line:
+                return None
+
             print(f'No match for this line: {line}', file=sys.stderr)
             return None
 
