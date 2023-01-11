@@ -84,10 +84,10 @@ class Throughput:
     # Units sorted from small to large.
     _unit_dict = {
         'B': 1,
-        'KB': 10 ** 3,
-        'MB': 10 ** 6,
-        'GB': 10 ** 9,
-        'TB': 10 ** 12,
+        'KB': 1024,
+        'MB': 1024 * 1024,
+        'GB': 1024 * 1024 * 1024,
+        'TB': 1024 * 1024 * 1024 * 1024,
     }
 
     @classmethod
