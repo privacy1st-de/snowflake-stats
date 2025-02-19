@@ -2,33 +2,19 @@
 
 ## Usage
 
-Usage: `<write-log-to-stdout> | ./main.py`
+Redirect your Snowflake logs to this python script. 
 
-- Example: Pipe docker log from remote computer into `main.py`
+Add argument `-p` if they are "plain" Snowflake logs or `-s` if Snowflakes output was logged by systemd.
 
-   ```bash
-   (venv-310) [user@linux snoflake-stats]$ ssh root_at_my_server 'docker logs snowflake-proxy' 2>&1 | ./main.py
-   ```
+Examples:
 
-- Example: Pipe logfile into `main.py`
+```shell
+ssh root@snowflake-host 'docker logs snowflake-proxy' 2>&1 | ./main.py -p
+```
 
-   ```bash
-   (venv-310) [user@linux snoflake-stats]$ cat snowflake.log | ./main.py
-   ```
-
-Usage: `./main.py <docker-container-name> [<ssh-hostname>]`
-
-- Example: Specify name of local docker container
-
-   ```bash
-   (venv-310) [user@linux snoflake-stats]$ ./main.py snowflake-proxy
-   ```
-
-- Example: Docker container name and ssh hostname
-
-   ```bash
-   (venv-310) [user@linux snoflake-stats]$ ./main.py snowflake-proxy root_at_my_server
-   ```
+```shell
+ssh user@snowflake-host 'journalctl -u snowflake-proxy.service' | ./main.py -s
+```
 
 ## Example output
 

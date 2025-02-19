@@ -5,24 +5,55 @@ import re
 from datetime import datetime
 import sys
 
-import exec
-
 
 def test() -> None:
-    log = example_log()
+    log = example_log().splitlines()
+    parse_log(log)
+
+    log = example_systemd_log().splitlines()
+    log = [remove_systemd_prefix(line) for line in log]
     parse_log(log)
 
 
 def main() -> None:
-    if len(sys.argv) > 1:
-        log = get_docker_log()
-    else:
-        log = sys.stdin.read()
+    systemd = parse_args()
+    log = sys.stdin.read().splitlines()
+    if systemd:
+        log = [remove_systemd_prefix(line) for line in log]
     parse_log(log)
 
 
-def parse_log(log: str) -> None:
-    tps = [Throughput.from_str(line) for line in log.splitlines()]
+def parse_args() -> bool:
+    usage = (f'usage: {sys.argv[0]} -p|-s\n'
+             f'  -p: parse plain Snowflake output\n'
+             f'  -p: parse Snowflake output logged by systemd\n')
+
+    if len(sys.argv) != 2 or sys.argv[0] in ['--help', '-h']:
+        print(usage, file=sys.stderr)
+        exit(1)
+
+    arg1 = sys.argv[1]
+    if arg1 == '-p':
+        return False
+    elif arg1 == '-s':
+        return True
+    else:
+        raise Exception(usage)
+
+
+def remove_systemd_prefix(line: str) -> str:
+    pattern_str = r'[A-Z][a-z]+ [0-9]+ [0-9][0-9]:[0-9][0-9]:[0-9][0-9] \S+ \S+\[[0-9]+\]: (.+)'
+    pattern = re.compile(pattern_str)
+    match = pattern.match(line)
+
+    if not match:
+        raise Exception(match)
+
+    return match.group(1)
+
+
+def parse_log(log: list[str]) -> None:
+    tps = [Throughput.from_str(line) for line in log]
     tps = [tp for tp in tps if tp]
     if len(tps) > 0:
         print()
@@ -50,31 +81,14 @@ def example_log() -> str:
         [
             '2022/09/13 15:08:36 Proxy starting',
             '2022/09/13 15:08:43 NAT type: unrestricted',
-            '2022/09/27 02:02:26 In the last 1h0m0s, there were 1 connections. Traffic Relayed ↑ 708 KB, ↓ 328 KB.',
-            '2022/09/28 02:02:26 In the last 1h0m0s, there were 0 connections. Traffic Relayed ↑ 0 B, ↓ 0 B.',
-            '2022/09/29 05:02:26 In the last 1h0m0s, there were 5 connections. Traffic Relayed ↑ 6 MB, ↓ 787 KB.',
-            '2022/09/29 11:02:26 In the last 1h0m0s, there were 26 connections. Traffic Relayed ↑ 16 MB, ↓ 10 MB.',
+            '2025/02/19 18:24:29 In the last 1h0m0s, there were 31 completed connections. Traffic Relayed ↓ 46719 KB, ↑ 3229 KB.'
             'sctp ERROR: 2022/09/29 23:00:53 [0xc00006e000] stream 1 not found)',
         ]
     )
 
 
-def get_docker_log() -> str:
-    if len(sys.argv) < 2:
-        print(f'usage: {sys.argv[0]} <docker-container-name> [<ssh-hostname>]', file=sys.stderr)
-        exit(1)
-
-    container_name = sys.argv[1]
-
-    ssh_hostname = None
-    if len(sys.argv) > 2:
-        ssh_hostname = sys.argv[2]
-
-    return docker_logs(container_name, ssh_hostname)
-
-
-def docker_logs(container_name: str, ssh_host: str = None) -> str:
-    return exec.execute_and_capture(['docker', 'logs', container_name], ssh_host, 'stderr')
+def example_systemd_log() -> str:
+    return 'Feb 19 19:24:29 yodaNas proxy[1318]: 2025/02/19 18:24:29 In the last 1h0m0s, there were 3 completed connections. Traffic Relayed ↓ 46719 KB, ↑ 3229 KB.\n'
 
 
 class Throughput:
@@ -93,8 +107,8 @@ class Throughput:
     @classmethod
     def from_str(cls, line: str) -> Throughput | None:
         pattern_str = r'(\d\d\d\d/\d\d/\d\d \d\d:\d\d:\d\d)' \
-                      r' In the last 1h0m0s, there were (\d+) connections\. ' \
-                      r'Traffic Relayed ↑ (\d+ [A-Z]+), ↓ (\d+ [A-Z]+)\.'
+                      r' In the last 1h0m0s, there were (\d+) completed connections\. ' \
+                      r'Traffic Relayed ↓ (\d+ [A-Z]+), ↑ (\d+ [A-Z]+)\.'
         pattern = re.compile(pattern_str)
         match = pattern.match(line)
 
@@ -109,8 +123,8 @@ class Throughput:
 
         dt = datetime.strptime(match.group(1), Throughput.DATE_FORMAT_STR)
         connections = int(match.group(2))
-        bytes_up = cls._split_to_bytes(match.group(3))
-        bytes_down = cls._split_to_bytes(match.group(4))
+        bytes_down = cls._split_to_bytes(match.group(3))
+        bytes_up = cls._split_to_bytes(match.group(4))
 
         return cls(dt, bytes_up, bytes_down, connections)
 
