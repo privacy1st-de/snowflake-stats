@@ -11,7 +11,8 @@ def test() -> None:
     parse_log(log)
 
     log = example_systemd_log().splitlines()
-    log = [remove_systemd_prefix(line) for line in log]
+    log = [line for line in log if not systemd_status_message(line)]
+    log = [remove_systemd_log_prefix(line) for line in log]
     parse_log(log)
 
 
@@ -19,7 +20,8 @@ def main() -> None:
     systemd = parse_args()
     log = sys.stdin.read().splitlines()
     if systemd:
-        log = [remove_systemd_prefix(line) for line in log]
+        log = [line for line in log if not systemd_status_message(line)]
+        log = [remove_systemd_log_prefix(line) for line in log]
     parse_log(log)
 
 
@@ -41,7 +43,7 @@ def parse_args() -> bool:
         raise Exception(usage)
 
 
-def remove_systemd_prefix(line: str) -> str:
+def remove_systemd_log_prefix(line: str) -> str:
     pattern_str = r'[A-Z][a-z]+ [0-9]+ [0-9][0-9]:[0-9][0-9]:[0-9][0-9] \S+ \S+\[[0-9]+\]: (.+)'
     pattern = re.compile(pattern_str)
     match = pattern.match(line)
@@ -86,9 +88,37 @@ def example_log() -> str:
         ]
     )
 
+def systemd_status_message(line: str) -> bool:
+    pattern1 = r'snowflake-proxy\.service'
+    pattern2 = r'-- Boot \S+ --'
+    pattern_str = rf'.*({pattern1}|{pattern2}).*'
+
+    pattern = re.compile(pattern_str)
+    match = pattern.match(line)
+
+    return match is not None
+
 
 def example_systemd_log() -> str:
-    return 'Feb 19 19:24:29 yodaNas proxy[1318]: 2025/02/19 18:24:29 In the last 1h0m0s, there were 3 completed connections. Traffic Relayed ↓ 46719 KB, ↑ 3229 KB.\n'
+    return \
+"""Feb 19 22:24:29 yodaNas proxy[1318]: 2025/02/19 21:24:29 In the last 1h0m0s, there were 1 completed connections. Traffic Relayed ↓ 63951 KB, ↑ 2769 KB.
+Feb 19 22:36:55 yodaNas systemd[1]: Stopping snowflake-proxy.service...
+Feb 19 22:36:55 yodaNas systemd[1]: snowflake-proxy.service: Deactivated successfully.
+Feb 19 22:36:55 yodaNas systemd[1]: Stopped snowflake-proxy.service.
+Feb 19 22:36:55 yodaNas systemd[1]: snowflake-proxy.service: Consumed 9h 49.217s CPU time, 33.7M memory peak, 1.6M memory swap peak, 258.3M read from disk, 3.2M written to disk, 7.3G incoming IP traffic, 7.6G outgoing IP traffic.
+Feb 19 22:36:55 yodaNas systemd[1]: Started snowflake-proxy.service.
+Feb 19 22:36:55 yodaNas proxy[940302]: 2025/02/19 21:36:55 Proxy starting
+Feb 19 22:37:15 yodaNas proxy[940302]: 2025/02/19 21:37:15 NAT type: restricted
+Feb 19 22:58:30 yodaNas systemd[1]: Stopping snowflake-proxy.service...
+Feb 19 22:58:30 yodaNas systemd[1]: snowflake-proxy.service: Deactivated successfully.
+Feb 19 22:58:30 yodaNas systemd[1]: Stopped snowflake-proxy.service.
+Feb 19 22:58:30 yodaNas systemd[1]: snowflake-proxy.service: Consumed 7.412s CPU time, 9.7M memory peak, 2.1M read from disk, 20.6M incoming IP traffic, 21.6M outgoing IP traffic.
+-- Boot fd2a773892aa48c095489cc8410b36e4 --
+Feb 19 23:04:30 yodaNas systemd[1]: Started snowflake-proxy.service.
+Feb 19 23:04:30 yodaNas proxy[1322]: 2025/02/19 22:04:30 Proxy starting
+Feb 19 23:04:51 yodaNas proxy[1322]: 2025/02/19 22:04:51 NAT type: restricted
+Feb 20 00:04:30 yodaNas proxy[1322]: 2025/02/19 23:04:30 In the last 1h0m0s, there were 0 completed connections. Traffic Relayed ↓ 335 KB, ↑ 306 KB.
+"""
 
 
 class Throughput:
@@ -117,9 +147,9 @@ class Throughput:
                     'Proxy starting' in line or \
                     'NAT type: ' in line:
                 return None
-
-            print(f'No match for this line: {line}', file=sys.stderr)
-            return None
+            else:
+                print(f'No match for this line: {line}', file=sys.stderr)
+                return None
 
         dt = datetime.strptime(match.group(1), Throughput.DATE_FORMAT_STR)
         connections = int(match.group(2))
