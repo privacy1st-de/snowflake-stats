@@ -101,23 +101,24 @@ def systemd_status_message(line: str) -> bool:
 
 def example_systemd_log() -> str:
     return \
-"""Feb 19 22:24:29 yodaNas proxy[1318]: 2025/02/19 21:24:29 In the last 1h0m0s, there were 1 completed connections. Traffic Relayed ↓ 63951 KB, ↑ 2769 KB.
-Feb 19 22:36:55 yodaNas systemd[1]: Stopping snowflake-proxy.service...
-Feb 19 22:36:55 yodaNas systemd[1]: snowflake-proxy.service: Deactivated successfully.
-Feb 19 22:36:55 yodaNas systemd[1]: Stopped snowflake-proxy.service.
-Feb 19 22:36:55 yodaNas systemd[1]: snowflake-proxy.service: Consumed 9h 49.217s CPU time, 33.7M memory peak, 1.6M memory swap peak, 258.3M read from disk, 3.2M written to disk, 7.3G incoming IP traffic, 7.6G outgoing IP traffic.
-Feb 19 22:36:55 yodaNas systemd[1]: Started snowflake-proxy.service.
-Feb 19 22:36:55 yodaNas proxy[940302]: 2025/02/19 21:36:55 Proxy starting
-Feb 19 22:37:15 yodaNas proxy[940302]: 2025/02/19 21:37:15 NAT type: restricted
-Feb 19 22:58:30 yodaNas systemd[1]: Stopping snowflake-proxy.service...
-Feb 19 22:58:30 yodaNas systemd[1]: snowflake-proxy.service: Deactivated successfully.
-Feb 19 22:58:30 yodaNas systemd[1]: Stopped snowflake-proxy.service.
-Feb 19 22:58:30 yodaNas systemd[1]: snowflake-proxy.service: Consumed 7.412s CPU time, 9.7M memory peak, 2.1M read from disk, 20.6M incoming IP traffic, 21.6M outgoing IP traffic.
--- Boot fd2a773892aa48c095489cc8410b36e4 --
-Feb 19 23:04:30 yodaNas systemd[1]: Started snowflake-proxy.service.
-Feb 19 23:04:30 yodaNas proxy[1322]: 2025/02/19 22:04:30 Proxy starting
-Feb 19 23:04:51 yodaNas proxy[1322]: 2025/02/19 22:04:51 NAT type: restricted
-Feb 20 00:04:30 yodaNas proxy[1322]: 2025/02/19 23:04:30 In the last 1h0m0s, there were 0 completed connections. Traffic Relayed ↓ 335 KB, ↑ 306 KB.
+"""Jul 02 12:39:11 yodaStrato proxy[664]: 2025/07/02 10:39:11 In the last 1h0m0s, there were 14 completed successful connections. Traffic Relayed ↓ 151250 KB (42.01 KB/s), ↑ 12465 KB (3.46 KB/s).
+Jul 02 13:39:11 yodaStrato proxy[664]: 2025/07/02 11:39:11 In the last 1h0m0s, there were 6 completed successful connections. Traffic Relayed ↓ 73291 KB (20.36 KB/s), ↑ 8945 KB (2.48 KB/s).
+Jul 02 14:39:11 yodaStrato proxy[664]: 2025/07/02 12:39:11 In the last 1h0m0s, there were 12 completed successful connections. Traffic Relayed ↓ 15247 KB (4.24 KB/s), ↑ 2664 KB (0.74 KB/s).
+Jul 02 15:39:11 yodaStrato proxy[664]: 2025/07/02 13:39:11 In the last 1h0m0s, there were 13 completed successful connections. Traffic Relayed ↓ 26341 KB (7.32 KB/s), ↑ 3225 KB (0.90 KB/s).
+Jul 02 16:26:06 yodaStrato systemd[1]: Stopping snowflake-proxy.service...
+Jul 02 16:26:07 yodaStrato systemd[1]: snowflake-proxy.service: Deactivated successfully.
+Jul 02 16:26:07 yodaStrato systemd[1]: Stopped snowflake-proxy.service.
+Jul 02 16:26:07 yodaStrato systemd[1]: snowflake-proxy.service: Consumed 2h 34min 58.390s CPU time, 32.5M memory peak, 2.9M memory swap peak, 24.2M read from disk, 2.2M written to disk, 890K incoming IP traffic, 930.1K outgoing IP traffic.
+-- Boot 27ad9ddf5aee48a4957c7ded40b61e4b --
+Jul 02 16:26:18 yodaStrato systemd[1]: Started snowflake-proxy.service.
+Jul 02 16:26:19 yodaStrato proxy[669]: 2025/07/02 14:26:19 Proxy starting
+Jul 02 16:26:19 yodaStrato proxy[669]: 2025/07/02 14:26:19 NAT type: unknown
+Jul 02 17:26:19 yodaStrato proxy[669]: 2025/07/02 15:26:19 In the last 1h0m0s, there were 13 completed successful connections. Traffic Relayed ↓ 459203 KB (127.56 KB/s), ↑ 21105 KB (5.86 KB/s).
+Jul 02 18:26:19 yodaStrato proxy[669]: 2025/07/02 16:26:19 In the last 1h0m0s, there were 17 completed successful connections. Traffic Relayed ↓ 122750 KB (34.10 KB/s), ↑ 9751 KB (2.71 KB/s).
+Jul 02 19:26:19 yodaStrato proxy[669]: 2025/07/02 17:26:19 In the last 1h0m0s, there were 20 completed successful connections. Traffic Relayed ↓ 359642 KB (99.90 KB/s), ↑ 20824 KB (5.78 KB/s).
+Jul 02 20:26:19 yodaStrato proxy[669]: 2025/07/02 18:26:19 In the last 1h0m0s, there were 25 completed successful connections. Traffic Relayed ↓ 1536092 KB (426.69 KB/s), ↑ 61691 KB (17.14 KB/s).
+Jul 02 21:26:19 yodaStrato proxy[669]: 2025/07/02 19:26:19 In the last 1h0m0s, there were 18 completed successful connections. Traffic Relayed ↓ 219490 KB (60.97 KB/s), ↑ 10274 KB (2.85 KB/s).
+Jul 02 22:26:19 yodaStrato proxy[669]: 2025/07/02 20:26:19 In the last 1h0m0s, there were 15 completed successful connections. Traffic Relayed ↓ 657665 KB (182.68 KB/s), ↑ 32766 KB (9.10 KB/s).
 """
 
 
@@ -137,16 +138,16 @@ class Throughput:
     @classmethod
     def from_str(cls, line: str) -> Throughput | None:
         pattern_str = r'(\d\d\d\d/\d\d/\d\d \d\d:\d\d:\d\d)' \
-                      r' In the last 1h0m0s, there were (\d+) completed connections\. ' \
-                      r'Traffic Relayed ↓ (\d+ [A-Z]+), ↑ (\d+ [A-Z]+)\.'
+                      r' In the last 1h0m0s, there were (\d+) completed successful connections\. ' \
+                      r'Traffic Relayed ↓ (\d+ [A-Z]+) \(\d+\.\d+ [A-Z]+/s\), ↑ (\d+ [A-Z]+) \(\d+\.\d+ [A-Z]+/s\)\.'
         pattern = re.compile(pattern_str)
         match = pattern.match(line)
 
+        error_substrings = ['sctp ERROR', 'ortc ERROR: ', 'Proxy starting', 'NAT type: ']
         if not match:
-            if 'sctp ERROR' in line or \
-                    'Proxy starting' in line or \
-                    'NAT type: ' in line:
-                return None
+            for error_substring in error_substrings:
+                if error_substring in line:
+                    return None
             else:
                 print(f'No match for this line: {line}', file=sys.stderr)
                 return None
