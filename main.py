@@ -28,7 +28,7 @@ def main() -> None:
 def parse_args() -> bool:
     usage = (f'usage: {sys.argv[0]} -p|-s\n'
              f'  -p: parse plain Snowflake output\n'
-             f'  -p: parse Snowflake output logged by systemd\n')
+             f'  -s: parse Snowflake output logged by systemd\n')
 
     if len(sys.argv) != 2 or sys.argv[0] in ['--help', '-h']:
         print(usage, file=sys.stderr)
